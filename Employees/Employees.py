@@ -8,7 +8,7 @@ from tkinter import filedialog
 from tkinter import *
 
 Range = namedtuple('Range', ['start', 'end'])
-
+ 
 class Employees:
     def __init__(self,file):
         self.file = file
