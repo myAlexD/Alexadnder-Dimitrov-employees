@@ -45,8 +45,8 @@ class Employees:
         worked_days = {}
         emp_index = {}
 
-        for x in [x[0] for x in zip(*np.unique(employees[1], return_counts=True)) if x[1] > 1]:
-            emp_index[x] = []
+        for projects in [unqs[0] for unqs in zip(*np.unique(employees[1], return_counts=True)) if unqs[1] > 1]:
+            emp_index[projects] = []
         for proj in emp_index.keys():
             for index,x in enumerate(employees[1]):
                 if x == proj:
@@ -54,24 +54,34 @@ class Employees:
 
         
         for projects in emp_index.keys():
-            for x in itertools.combinations(emp_index[projects], 2):
-                emp_1_id = employees[0][x[0]]
-                emp_2_id = employees[0][x[1]]
-                r1 = Range(start=employees[2][x[0]], end=employees[3][x[0]] )
-                r2 = Range(start=employees[2][x[1]], end=employees[3][x[1]] )
+            for proj_index in itertools.combinations(emp_index[projects], 2):
+                emp_1_id = employees[0][proj_index[0]]
+                emp_2_id = employees[0][proj_index[1]]
+                r1 = Range(start=employees[2][proj_index[0]], end=employees[3][proj_index[0]] )
+                r2 = Range(start=employees[2][proj_index[1]], end=employees[3][proj_index[1]] )
 
                 latest_start = max(r1.start, r2.start)
                 earliest_end = min(r1.end, r2.end)
                 delta = (earliest_end - latest_start).days + 1
-                worked_days[f'{emp_1_id}/{emp_2_id}-{x}-{projects}'] = max(0, delta)
+                worked_days[f'{emp_1_id}/{emp_2_id}-{proj_index}-{projects}'] = max(0, delta)
+        keys = [str(x.split("-")[0]) for x in worked_days.keys()]
+        if len(keys) == len(set(keys)):
+            print("true")
+        #print(keys)
         return worked_days
 
     def output(self):
+        """
+        
+        """
         with open(self.file, newline="") as f:
             reader = csv.reader(f)
-            reader.__next__()#remove the headers
+            reader.__next__() # remove the headers
             transpose_list = self._trnsp(list(reader))
         worked_days = self._days_worked(transpose_list)
         a = max(worked_days.items(), key=operator.itemgetter(1))
-        return [a[0].split('-')[0].split('/')[0],a[0].split('-')[0].split('/')[1],a[0].split('-')[2], a[1]]
+        if a[1] > 0:
+            return [a[0].split('-')[0].split('/')[0], a[0].split('-')[0].split('/')[1], a[0].split('-')[2], a[1]]
+        else:
+            return ["There are ","no employees ", "that ", "worked togather"]
         
