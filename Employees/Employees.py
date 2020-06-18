@@ -6,6 +6,7 @@ import itertools
 import operator
 from tkinter import filedialog
 from tkinter import *
+import dateparser
 
 Range = namedtuple('Range', ['start', 'end'])
  
@@ -17,8 +18,8 @@ class Employees:
         """
         Function used to convert strings into datetime objects based on matching format
         """
-        date_string = "%Y-%m-%d"
-        return [datetime.strptime(x, date_string).date() if x != 'NULL' else datetime.now().date() for x in dates]
+        #date_string = "%Y-%m-%d"
+        return [dateparser.parse(x).date() if x != 'NULL' else datetime.now().date() for x in dates]
 
     def _trnsp(self,a_list):
         """
@@ -35,8 +36,11 @@ class Employees:
 
     def _days_worked(self, employees):
         """
-        Input: Takes as input the dictionnary from pairs function and calculates the overlap of days worked on a project. Will return 0 when there is no overlap.
-        Output: Provides a dictionnairy with all of the pairs of employees who worked togather as a key and the days spent working togather as a value
+        Input: Takes as input the dictionnary from pairs function and calculates the overlap
+        of days worked on a project. Will return 0 when there is no overlap.
+        
+        Output: Provides a dictionnairy with all of the pairs of employees who worked
+        togather as a key and the days spent working togather as a value
         """
         worked_days = {}
         emp_index = {}
@@ -70,4 +74,4 @@ class Employees:
         worked_days = self._days_worked(transpose_list)
         a = max(worked_days.items(), key=operator.itemgetter(1))
         return [a[0].split('-')[0].split('/')[0],a[0].split('-')[0].split('/')[1],a[0].split('-')[2], a[1]]
-        #return f"Employee ID#1 {a[0].split('-')[0].split('/')[0]}, Employee ID#2 {a[0].split('-')[0].split('/')[1]}, Project ID {a[0].split('-')[2]}, Days Worked togather {a[1]}"
+        

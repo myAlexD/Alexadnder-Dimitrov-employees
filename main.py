@@ -33,7 +33,7 @@ class Application(Frame):
 
 
 root = Tk()
-root.geometry('700x120+850+300')
+root.geometry('400x120+850+300')
 root.title('Employees')
 label_1 = Label(root, text="Employee ID #1")
 label_2 = Label(root, text="Employee ID #2")
