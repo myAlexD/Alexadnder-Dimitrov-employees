@@ -22,6 +22,7 @@ class Application(Frame):
 
     def file_dialog(self):
         text_display = emp(filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("csv files","*.csv"),("all files","*.*")))).output()
+        '''
         label_1.config(text=f"Employee ID #1\n{text_display[0]}")
         label_1.place(x=25,y=85)
         label_2.config(text=f"Employee ID #2\n{text_display[1]}")
@@ -30,7 +31,7 @@ class Application(Frame):
         label_3.place(x=215,y=85)
         label_4.config(text=f"Days worked\n{text_display[3]}")
         label_4.place(x=290,y=85)
-
+        '''
 
 root = Tk()
 root.geometry('400x120+850+300')

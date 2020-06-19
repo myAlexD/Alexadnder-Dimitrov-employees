@@ -14,14 +14,8 @@ class Employees:
     def __init__(self,file):
         self.file = file
 
-    def _date_convertion(self,dates):
-        """
-        Function used to convert strings into datetime objects based on matching format
-        """
-        #date_string = "%Y-%m-%d"
-        return [dateparser.parse(x).date() if x != 'NULL' else datetime.now().date() for x in dates]
 
-    def _trnsp(self,a_list):
+    def _data_convertor(self,a_list):
         """
         takes list of lists as in input and returns transposed version of the list
         Dates provided in string format are converted to datetime object
@@ -29,59 +23,65 @@ class Employees:
         numpy_array = np.array(a_list)
         transpose = numpy_array.T
         transpose_list = transpose.tolist()
-        transpose_list[2] = self._date_convertion(transpose_list[2])
-        transpose_list[3] = self._date_convertion(transpose_list[3])
-        return transpose_list
+        transpose_list[2] = [dateparser.parse(x).date() if x != 'NULL' else datetime.now().date() for x in transpose_list[2]]
+        transpose_list[3] = [dateparser.parse(x).date() if x != 'NULL' else datetime.now().date() for x in transpose_list[3]]
 
+  
+        emp_id ={}
+        for projects in [unqs[0] for unqs in zip(*np.unique(transpose_list[1], return_counts=True)) if unqs[1] > 1]:
+            emp_id[projects] = [[],[]]
+            for index,x in enumerate(transpose_list[1]):
+                if x == projects:
+                    emp_id[projects][0].append(transpose_list[0][index])
+                    emp_id[projects][1].append([transpose_list[2][index],transpose_list[3][index]])
 
-    def _days_worked(self, employees):
+        emp_tuples = {}
+        for project in emp_id.keys():
+            for keys in [x for x in itertools.combinations(emp_id[project][0], 2)]:
+                emp1_id = keys[0]
+                emp2_id = keys[1]
+
+                emp1_index = emp_id[project][0].index(emp1_id)
+                emp2_index = emp_id[project][0].index(emp2_id)
+
+                emp1_dates = emp_id[project][1][emp1_index]
+                emp2_dates = emp_id[project][1][emp2_index]
+                days_overlap = self._date_overlap([emp1_dates,emp2_dates])
+                if keys not in [tuple(sorted(current_key, reverse=True)) for current_key in emp_tuples.keys()] and keys not in [tuple(sorted(current_key, reverse=False)) for current_key in emp_tuples.keys()]:
+                    emp_tuples[keys] = {}
+                    emp_tuples[keys][project] = days_overlap
+                    emp_tuples[keys]["total"] = days_overlap
+                else:
+                    emp_tuples[tuple(sorted(keys, reverse=True))][project] = days_overlap
+                    emp_tuples[tuple(sorted(keys, reverse=True))]["total"] += days_overlap
+        output = {}
+        for key,value in emp_tuples.items():
+            if value["total"] == max([emp_tuples[emp_key]["total"] for emp_key in emp_tuples.keys()]):
+                output[key] = value
+        return output
+
+    def _date_overlap(self,date_list):
         """
-        Input: Takes as input the dictionnary from pairs function and calculates the overlap
-        of days worked on a project. Will return 0 when there is no overlap.
-        
-        Output: Provides a dictionnairy with all of the pairs of employees who worked
-        togather as a key and the days spent working togather as a value
+        Function which checks the overlap between two sets of dates.
+        Input: 
+            List of lists that contains two sets of date time objects in the format : [<start Date>, <end Date>]
+        Output: 
+            Integer: Overlap between the dates in days. If the dates do not overlap it will return 0
         """
-        worked_days = {}
-        emp_index = {}
+        set1 = Range(start=date_list[0][0], end=date_list[0][1])
+        set2 = Range(start=date_list[1][0], end=date_list[1][1])
+        latest_start = max(set1.start, set2.start)
+        earliest_end = min(set1.end, set2.end)
+        delta = (earliest_end - latest_start).days + 1
+        return max(0, delta)
 
-        for projects in [unqs[0] for unqs in zip(*np.unique(employees[1], return_counts=True)) if unqs[1] > 1]:
-            emp_index[projects] = []
-        for proj in emp_index.keys():
-            for index,x in enumerate(employees[1]):
-                if x == proj:
-                    emp_index[proj].append(index)
 
-        
-        for projects in emp_index.keys():
-            for proj_index in itertools.combinations(emp_index[projects], 2):
-                emp_1_id = employees[0][proj_index[0]]
-                emp_2_id = employees[0][proj_index[1]]
-                r1 = Range(start=employees[2][proj_index[0]], end=employees[3][proj_index[0]] )
-                r2 = Range(start=employees[2][proj_index[1]], end=employees[3][proj_index[1]] )
-
-                latest_start = max(r1.start, r2.start)
-                earliest_end = min(r1.end, r2.end)
-                delta = (earliest_end - latest_start).days + 1
-                worked_days[f'{emp_1_id}/{emp_2_id}-{proj_index}-{projects}'] = max(0, delta)
-        keys = [str(x.split("-")[0]) for x in worked_days.keys()]
-        if len(keys) == len(set(keys)):
-            print("true")
-        #print(keys)
-        return worked_days
-
-    def output(self):
+    def output(self): 
         """
         
         """
         with open(self.file, newline="") as f:
             reader = csv.reader(f)
             reader.__next__() # remove the headers
-            transpose_list = self._trnsp(list(reader))
-        worked_days = self._days_worked(transpose_list)
-        a = max(worked_days.items(), key=operator.itemgetter(1))
-        if a[1] > 0:
-            return [a[0].split('-')[0].split('/')[0], a[0].split('-')[0].split('/')[1], a[0].split('-')[2], a[1]]
-        else:
-            return ["There are ","no employees ", "that ", "worked togather"]
-        
+            worked_days = self._data_convertor(list(reader))
+        return worked_days
