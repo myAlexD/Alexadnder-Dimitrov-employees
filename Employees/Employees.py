@@ -17,9 +17,12 @@ class Employees:
 
     def _data_convertor(self,a_list):
         """
-        takes list of lists as in input and returns transposed version of the list
-        Dates provided in string format are converted to datetime object
+        Function that takes the input from a csv file as a list of lists and returns the pair(s) of employees that worked most days togather
+        Input: list of lists
+        Output: Dictionary with the two employee IDs as key,  all projects they worked togather and total of days worked togather as values
         """
+
+        # Transponse the list and convert strings to datetime objects
         numpy_array = np.array(a_list)
         transpose = numpy_array.T
         transpose_list = transpose.tolist()
@@ -28,6 +31,7 @@ class Employees:
 
   
         emp_id ={}
+        # find all employees that worked togather on projects
         for projects in [unqs[0] for unqs in zip(*np.unique(transpose_list[1], return_counts=True)) if unqs[1] > 1]:
             emp_id[projects] = [[],[]]
             for index,x in enumerate(transpose_list[1]):
@@ -36,6 +40,7 @@ class Employees:
                     emp_id[projects][1].append([transpose_list[2][index],transpose_list[3][index]])
 
         emp_tuples = {}
+        # Check how many days each unique pair of employees worked togather
         for project in emp_id.keys():
             for keys in [x for x in itertools.combinations(emp_id[project][0], 2)]:
                 emp1_id = keys[0]
@@ -55,9 +60,12 @@ class Employees:
                     emp_tuples[tuple(sorted(keys, reverse=True))][project] = days_overlap
                     emp_tuples[tuple(sorted(keys, reverse=True))]["total"] += days_overlap
         output = {}
+        # Return only the pair(s) that have the most days worked togather
         for key,value in emp_tuples.items():
-            if value["total"] == max([emp_tuples[emp_key]["total"] for emp_key in emp_tuples.keys()]):
-                output[key] = value
+            if max([emp_tuples[emp_key]["total"] for emp_key in emp_tuples.keys()]) > 0:
+                if value["total"] == max([emp_tuples[emp_key]["total"] for emp_key in emp_tuples.keys()]):
+                    output[key] = value
+            else: output = "No employees worked togather"
         return output
 
     def _date_overlap(self,date_list):
