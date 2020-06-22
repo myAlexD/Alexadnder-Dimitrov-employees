@@ -1,4 +1,7 @@
 # Alexadnder-Dimitrov-employees
 
-run:
+Create virtual envirment and run:
 pip install -r requriments.txt
+
+Simply start main.py
+
